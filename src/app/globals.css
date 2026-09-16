@@ -236,6 +236,14 @@ h1 {
   padding: 0.65rem 0.8rem;
 }
 
+.mapFrame--fallback .mapStatus {
+  left: 0.75rem;
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  z-index: 4;
+}
+
 .mapRoad {
   background: #fff9e9;
   box-shadow: 0 0 0 1px #ddd6c6;

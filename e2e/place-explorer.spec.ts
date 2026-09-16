@@ -1,12 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const preferencesKey = "food-map.preferences.v1";
+import { mockExternalNetwork, mockMapFailure } from "./test-helpers";
 
-async function blockExternalNetwork(page: Page) {
-  await page.route(/^https?:\/\/(?!127\.0\.0\.1(?::\d+)?(?:\/|$))/, (route) =>
-    route.abort("blockedbyclient"),
-  );
-}
+const preferencesKey = "food-map.preferences.v1";
 
 async function restaurantNames(page: Page) {
   return page
@@ -16,7 +12,85 @@ async function restaurantNames(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await blockExternalNetwork(page);
+  await mockExternalNetwork(page);
+});
+
+test("keeps cards and interactive map markers selected in both directions", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByText("Interactive map ready.")).toBeAttached();
+
+  const emberCard = page.locator(".placeCard", { hasText: "Ember Kitchen" });
+  const emberMarker = page.getByRole("button", { name: "Show Ember Kitchen" });
+  await emberCard.click();
+  await expect(emberCard).toHaveAttribute("aria-pressed", "true");
+  await expect(emberMarker).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("Ember Kitchen selected.")).toBeAttached();
+
+  const gardenCard = page.locator(".placeCard", { hasText: "Garden Table" });
+  const gardenMarker = page.getByRole("button", { name: "Show Garden Table" });
+  await gardenMarker.click();
+  await expect(gardenMarker).toHaveAttribute("aria-pressed", "true");
+  await expect(gardenCard).toHaveAttribute("aria-pressed", "true");
+  await expect(emberCard).toHaveAttribute("aria-pressed", "false");
+});
+
+test("uses a stable desktop split layout", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await expect(page.getByText("Interactive map ready.")).toBeAttached();
+
+  const map = await page.locator(".mapFrame").boundingBox();
+  const results = await page
+    .getByRole("complementary", { name: "Restaurant results" })
+    .boundingBox();
+  expect(map).not.toBeNull();
+  expect(results).not.toBeNull();
+  expect(Math.abs(map!.y - results!.y)).toBeLessThanOrEqual(1);
+  expect(results!.x - (map!.x + map!.width)).toBeGreaterThanOrEqual(15);
+  expect(map!.width / results!.width).toBeGreaterThan(1.4);
+  expect(map!.height).toBeGreaterThanOrEqual(520);
+});
+
+test("overlays a bounded bottom sheet on the mobile map", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByText("Interactive map ready.")).toBeAttached();
+
+  const grid = await page.locator(".explorerGrid").boundingBox();
+  const map = await page.locator(".mapFrame").boundingBox();
+  const sheet = await page
+    .getByRole("complementary", { name: "Restaurant results" })
+    .boundingBox();
+  await expect(page.locator(".sheetHandle")).toBeVisible();
+  expect(grid).not.toBeNull();
+  expect(map).not.toBeNull();
+  expect(sheet).not.toBeNull();
+  expect(Math.abs(sheet!.x - map!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(sheet!.width - map!.width)).toBeLessThanOrEqual(1);
+  expect(sheet!.y).toBeGreaterThan(map!.y);
+  expect(sheet!.y).toBeLessThan(map!.y + map!.height);
+  expect(Math.abs(sheet!.y + sheet!.height - (grid!.y + grid!.height))).toBeLessThanOrEqual(1);
+  expect(sheet!.height).toBeLessThanOrEqual(grid!.height * 0.47);
+});
+
+test("keeps the restaurant list usable when the map cannot load", async ({
+  page,
+}) => {
+  await mockMapFailure(page);
+  await page.goto("/");
+
+  await expect(
+    page.getByText(/Interactive map unavailable. Showing the accessible fallback map/),
+  ).toBeVisible();
+  const emberCard = page.locator(".placeCard", { hasText: "Ember Kitchen" });
+  await emberCard.click();
+  await expect(emberCard).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("Ember Kitchen selected.")).toBeAttached();
+
+  await page.getByRole("checkbox", { name: "Noodles" }).check();
+  await expect(restaurantNames(page)).resolves.toEqual(["Harbor Noodles"]);
 });
 
 test("keeps the manual demo location after geolocation is denied", async ({

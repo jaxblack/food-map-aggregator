@@ -162,7 +162,7 @@ export function MapView({ places, selectedId, onSelect }: MapViewProps) {
 
   if (mapState === "error") {
     return (
-      <>
+      <div className="mapFrame mapFrame--fallback">
         <p className="mapStatus" role="status">
           Interactive map unavailable. Showing the accessible fallback map.
         </p>
@@ -171,7 +171,7 @@ export function MapView({ places, selectedId, onSelect }: MapViewProps) {
           places={places}
           selectedId={selectedId}
         />
-      </>
+      </div>
     );
   }
 
