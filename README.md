@@ -2,6 +2,8 @@
 
 A Next.js App Router and TypeScript food discovery MVP. It combines a responsive map, nearby search, cuisine/radius filters, metric sorting, and user-defined provider priority. Its safe default is deterministic and clearly labeled demo data; authorized live Amap data stays behind a server-only adapter.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjaxblack%2Ffood-map-aggregator)
+
 ## MVP capabilities
 
 - Browser geolocation with loading, denial, error, and session-only success states.
