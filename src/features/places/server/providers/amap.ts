@@ -7,7 +7,7 @@ import type {
 
 const AMAP_AROUND_URL = "https://restapi.amap.com/v5/place/around";
 const AMAP_DINING_CATEGORY = "050000";
-const MAX_RADIUS_METERS = 3_000;
+const MAX_RADIUS_METERS = 10_000;
 const MAX_RESULTS = 25;
 const REQUEST_TIMEOUT_MS = 4_000;
 
@@ -112,6 +112,9 @@ function normalizePoi(poi: AmapPoi): ProviderPlace | null {
 
   return {
     externalId: poi.id,
+    externalUrl: `https://uri.amap.com/marker?position=${encodeURIComponent(
+      `${longitude},${latitude}`,
+    )}&name=${encodeURIComponent(poi.name)}&coordinate=gaode&callnative=0`,
     name: poi.name,
     cuisine: poi.type?.split(";")[0] || "餐饮",
     neighborhood: poi.adname || poi.address || "附近",

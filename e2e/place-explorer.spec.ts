@@ -119,6 +119,26 @@ test("keeps the manual demo location after geolocation is denied", async ({
   await expect(page.getByText("3 restaurants shown.", { exact: false })).toBeAttached();
 });
 
+test("searches a manual demo area and sends the selected 10km radius", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByLabel("Search an address or demo area")
+    .fill("上海人民广场");
+  await page.getByRole("button", { name: "Find" }).click();
+  await expect(page.getByText(/上海人民广场（演示位置）/)).toBeVisible();
+  await expect(page.getByText(/deterministic demo area/i)).toBeVisible();
+
+  const response = page.waitForResponse((candidate) =>
+    candidate.url().includes("/api/places") &&
+    candidate.url().includes("radius=10000"),
+  );
+  await page.getByRole("radio", { name: "10 km" }).check();
+  expect((await response).ok()).toBe(true);
+  await expect(page.getByText("3 restaurants shown.", { exact: false })).toBeAttached();
+});
+
 test("filters cuisines and sorts results deterministically", async ({ page }) => {
   await page.goto("/");
 
@@ -171,7 +191,7 @@ test("labels demo and live source responses", async ({ page }) => {
   await expect(page.getByText("Source: demo")).toBeVisible();
   await expect(
     page.getByRole("status").filter({ hasText: "aggregation:" }),
-  ).toContainText("Deterministic demo fixture");
+  ).toContainText("4/4 providers ready");
 
   const demoResponse = await page.request.get("/api/places?source=demo");
   expect(demoResponse.ok()).toBe(true);
@@ -188,4 +208,17 @@ test("labels demo and live source responses", async ({ page }) => {
   expect(live.providerStatuses).toEqual([
     expect.objectContaining({ provider: "amap", mode: "live" }),
   ]);
+});
+
+test("shows honest provider links for demo merchants", async ({ page }) => {
+  await page.goto("/");
+  const links = page.getByLabel("Harbor Noodles provider links");
+
+  await expect(links.getByRole("link", { name: "Amap demo search" })).toHaveAttribute(
+    "data-mode",
+    "demo",
+  );
+  await expect(
+    links.getByRole("link", { name: "Douyin demo search" }),
+  ).toHaveAttribute("rel", "noreferrer");
 });

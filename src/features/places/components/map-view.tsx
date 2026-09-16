@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map as MapLibreMap, type Marker } from "maplibre-gl";
 
-import type { Place } from "@/features/places/model/types";
+import type { Coordinates, Place } from "@/features/places/model/types";
 
 interface MapViewProps {
+  center: Coordinates;
   places: Place[];
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -77,7 +78,12 @@ function StaticMap({
   );
 }
 
-export function MapView({ places, selectedId, onSelect }: MapViewProps) {
+export function MapView({
+  center,
+  places,
+  selectedId,
+  onSelect,
+}: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef(new Map<string, Marker>());
@@ -99,9 +105,7 @@ export function MapView({ places, selectedId, onSelect }: MapViewProps) {
       map = new maplibregl.Map({
         container: containerRef.current,
         style: MAP_STYLE,
-        center: places[0]
-          ? [places[0].coordinates.longitude, places[0].coordinates.latitude]
-          : [114.1694, 22.3193],
+        center: [center.longitude, center.latitude],
         zoom: 13,
         attributionControl: false,
       });
@@ -140,7 +144,7 @@ export function MapView({ places, selectedId, onSelect }: MapViewProps) {
       mapRef.current = null;
       map.remove();
     };
-  }, [onSelect, places]);
+  }, [center.latitude, center.longitude, onSelect, places]);
 
   useEffect(() => {
     for (const [placeId, marker] of markersRef.current) {
@@ -167,6 +171,7 @@ export function MapView({ places, selectedId, onSelect }: MapViewProps) {
           Interactive map unavailable. Showing the accessible fallback map.
         </p>
         <StaticMap
+          center={center}
           onSelect={onSelect}
           places={places}
           selectedId={selectedId}

@@ -10,6 +10,36 @@ describe("PlaceExplorer", () => {
 
   beforeEach(() => {
     window.localStorage.clear();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/api/geocode")) {
+          return new Response(
+            JSON.stringify({
+              label: "上海人民广场（演示位置）",
+              coordinates: { latitude: 31.2304, longitude: 121.4737 },
+              mode: "demo",
+              provider: "built-in-demo",
+            }),
+            { status: 200 },
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            sourceMode: "demo",
+            providerStatus: {
+              provider: "aggregation",
+              state: "ready",
+              message: "Demo",
+            },
+            providerStatuses: [],
+            places: DEMO_PLACES,
+          }),
+          { status: 200 },
+        );
+      }),
+    );
   });
 
   it("keeps list and map selection in sync", async () => {
@@ -39,6 +69,9 @@ describe("PlaceExplorer", () => {
       screen.getByText("Lantern Hill", { selector: ".mapCallout span" }),
     ).toBeVisible();
     expect(screen.getByText(/Ember Kitchen selected/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Ele.me demo search" }),
+    ).toHaveAttribute("href", "https://www.ele.me/");
   });
 
   it("provides an attributed fallback when an interactive map is unavailable", () => {
@@ -127,5 +160,38 @@ describe("PlaceExplorer", () => {
     expect(
       window.localStorage.getItem("food-map.preferences.v1") ?? "",
     ).not.toContain("22.3");
+  });
+
+  it("searches a manual address and refreshes when the radius changes", async () => {
+    const user = userEvent.setup();
+    render(
+      <PlaceExplorer
+        places={[...DEMO_PLACES]}
+        providerStatus={{
+          provider: "built-in-demo",
+          state: "ready",
+          message: "Demo",
+        }}
+        sourceMode="demo"
+      />,
+    );
+
+    await user.type(
+      screen.getByLabelText("Search an address or demo area"),
+      "上海",
+    );
+    await user.click(screen.getByRole("button", { name: "Find" }));
+    expect(
+      await screen.findByText(/上海人民广场（演示位置）/),
+    ).toBeVisible();
+    expect(screen.getByText(/deterministic demo area/i)).toBeVisible();
+
+    await user.click(screen.getByRole("radio", { name: "10 km" }));
+    await vi.waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("radius=10000"),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+    });
   });
 });

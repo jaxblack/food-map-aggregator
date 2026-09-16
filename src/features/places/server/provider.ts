@@ -8,6 +8,7 @@ import type {
 
 export interface ProviderPlace {
   externalId: string;
+  externalUrl?: string;
   name: string;
   cuisine: string;
   neighborhood: string;

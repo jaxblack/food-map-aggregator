@@ -86,6 +86,10 @@ describe("aggregatePlaces", () => {
         id: "amap-a",
         name: "Same Place",
         sourceProviders: ["amap", "meituan"],
+        sources: [
+          expect.objectContaining({ provider: "amap", mode: "demo" }),
+          expect.objectContaining({ provider: "meituan", mode: "demo" }),
+        ],
       }),
     );
     expect(places[1].id).toBe("meituan-far");

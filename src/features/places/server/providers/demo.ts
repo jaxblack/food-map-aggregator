@@ -1,4 +1,5 @@
 import { PROVIDER_FIXTURES } from "@/features/places/data/provider-fixtures";
+import { DEFAULT_CENTER } from "@/features/places/data/demo-locations";
 import type { ProviderId } from "@/features/places/model/types";
 import type {
   PlaceProviderAdapter,
@@ -17,8 +18,23 @@ export function createDemoProvider(id: ProviderId): PlaceProviderAdapter {
     id,
     mode: "demo",
     priority: PROVIDER_PRIORITIES[id],
-    async search(): Promise<ProviderResult> {
-      const places = PROVIDER_FIXTURES[id].map((place) => ({ ...place }));
+    async search(query): Promise<ProviderResult> {
+      const latitudeOffset = query.center.latitude - DEFAULT_CENTER.latitude;
+      const longitudeOffset =
+        query.center.longitude - DEFAULT_CENTER.longitude;
+      const places = PROVIDER_FIXTURES[id].map((place) => ({
+        ...place,
+        coordinates: {
+          latitude: Math.max(
+            -90,
+            Math.min(90, place.coordinates.latitude + latitudeOffset),
+          ),
+          longitude: Math.max(
+            -180,
+            Math.min(180, place.coordinates.longitude + longitudeOffset),
+          ),
+        },
+      }));
       return {
         status: {
           provider: id,

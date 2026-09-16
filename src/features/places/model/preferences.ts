@@ -108,8 +108,17 @@ export function sortPlaces(
   places: Place[],
   field: SortField,
   direction: SortDirection,
+  providerOrder: ProviderId[] = DEFAULT_PROVIDER_ORDER,
 ): Place[] {
   const multiplier = direction === "asc" ? 1 : -1;
+  const providerRank = (place: Place) =>
+    Math.min(
+      ...(place.sourceProviders ?? []).map((provider) => {
+        const rank = providerOrder.indexOf(provider);
+        return rank < 0 ? providerOrder.length : rank;
+      }),
+      providerOrder.length,
+    );
   return [...places].sort((left, right) => {
     const leftValue =
       field === "distance"
@@ -123,6 +132,10 @@ export function sortPlaces(
         : field === "rating"
           ? right.rating
           : right.priceLevel;
-    return (leftValue - rightValue) * multiplier || left.name.localeCompare(right.name);
+    return (
+      (leftValue - rightValue) * multiplier ||
+      providerRank(left) - providerRank(right) ||
+      left.name.localeCompare(right.name)
+    );
   });
 }

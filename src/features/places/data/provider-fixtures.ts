@@ -7,6 +7,8 @@ export const PROVIDER_FIXTURES: Readonly<
   amap: [
     {
       externalId: "harbor-noodles",
+      externalUrl:
+        "https://www.amap.com/search?query=Harbor%20Noodles",
       name: "Harbor Noodles",
       cuisine: "Noodles",
       neighborhood: "North Quay",
@@ -18,6 +20,8 @@ export const PROVIDER_FIXTURES: Readonly<
   meituan: [
     {
       externalId: "garden-table",
+      externalUrl:
+        "https://www.meituan.com/s/?w=Garden%20Table",
       name: "Garden Table",
       cuisine: "Vegetarian",
       neighborhood: "Jade Market",
@@ -29,6 +33,7 @@ export const PROVIDER_FIXTURES: Readonly<
   eleme: [
     {
       externalId: "ember-kitchen",
+      externalUrl: "https://www.ele.me/",
       name: "Ember Kitchen",
       cuisine: "Grill",
       neighborhood: "Lantern Hill",
@@ -40,6 +45,8 @@ export const PROVIDER_FIXTURES: Readonly<
   douyin: [
     {
       externalId: "harbor-noodles-copy",
+      externalUrl:
+        "https://www.douyin.com/search/Harbor%20Noodles",
       name: " Harbor  Noodles ",
       cuisine: "Noodles",
       neighborhood: "North Quay",

@@ -1,7 +1,8 @@
 "use client";
 
-import type { DragEvent } from "react";
+import type { DragEvent, FormEvent } from "react";
 
+import { DEMO_LOCATION_LABELS } from "@/features/places/data/demo-locations";
 import {
   RADIUS_OPTIONS,
   type PlacePreferences,
@@ -9,33 +10,41 @@ import {
   type SortDirection,
   type SortField,
 } from "@/features/places/model/preferences";
+import { PROVIDER_NAMES } from "@/features/places/model/providers";
 import type { ProviderId } from "@/features/places/model/types";
 
-export type GeolocationState = "demo" | "loading" | "denied" | "error" | "success";
+export type GeolocationState =
+  | "demo"
+  | "loading"
+  | "denied"
+  | "error"
+  | "manual"
+  | "success";
+export type ManualLocationState = "idle" | "loading" | "error" | "success";
 
 interface FilterPanelProps {
   cuisines: string[];
   geolocationState: GeolocationState;
+  locationLabel: string;
+  manualLocationMessage: string;
+  manualLocationQuery: string;
+  manualLocationState: ManualLocationState;
   onChange: (preferences: PlacePreferences) => void;
+  onManualLocationQueryChange: (query: string) => void;
   onMoveProvider: (provider: ProviderId, offset: -1 | 1) => void;
   onRequestLocation: () => void;
+  onSearchManualLocation: () => void;
   onUseDemoLocation: () => void;
   preferences: PlacePreferences;
   resultCount: number;
 }
-
-const PROVIDER_NAMES: Record<ProviderId, string> = {
-  meituan: "Meituan",
-  eleme: "Ele.me",
-  douyin: "Douyin",
-  amap: "Amap",
-};
 
 const GEO_MESSAGES: Record<GeolocationState, string> = {
   demo: "Manual demo location active — not your current location.",
   loading: "Requesting your browser location…",
   denied: "Location permission denied. The manual demo location remains active.",
   error: "Your location could not be determined. The manual demo location remains active.",
+  manual: "A manually searched location is active for this session.",
   success: "Current browser location active for this session only.",
 };
 
@@ -52,9 +61,15 @@ function directionLabel(field: SortField, direction: SortDirection): string {
 export function FilterPanel({
   cuisines,
   geolocationState,
+  locationLabel,
+  manualLocationMessage,
+  manualLocationQuery,
+  manualLocationState,
   onChange,
+  onManualLocationQueryChange,
   onMoveProvider,
   onRequestLocation,
+  onSearchManualLocation,
   onUseDemoLocation,
   preferences,
   resultCount,
@@ -90,6 +105,53 @@ export function FilterPanel({
           <button onClick={onUseDemoLocation} type="button">Use manual demo location</button>
         </div>
         <p className="filterHint" role="status" aria-live="polite">{GEO_MESSAGES[geolocationState]}</p>
+        <p className="activeLocation">
+          Active area: <strong>{locationLabel}</strong>
+        </p>
+        <form
+          className="manualLocationForm"
+          onSubmit={(event: FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            onSearchManualLocation();
+          }}
+        >
+          <label htmlFor="manual-location">Search an address or demo area</label>
+          <div className="manualLocationRow">
+            <input
+              autoComplete="street-address"
+              id="manual-location"
+              list="demo-location-options"
+              maxLength={80}
+              onChange={(event) =>
+                onManualLocationQueryChange(event.target.value)
+              }
+              placeholder="e.g. 上海人民广场"
+              value={manualLocationQuery}
+            />
+            <button
+              disabled={
+                manualLocationState === "loading" ||
+                manualLocationQuery.trim().length === 0
+              }
+              type="submit"
+            >
+              {manualLocationState === "loading" ? "Searching…" : "Find"}
+            </button>
+          </div>
+          <datalist id="demo-location-options">
+            {DEMO_LOCATION_LABELS.map((label) => (
+              <option key={label} value={label} />
+            ))}
+          </datalist>
+        </form>
+        {manualLocationMessage ? (
+          <p
+            className={`filterHint manualLocationMessage manualLocationMessage--${manualLocationState}`}
+            role="status"
+          >
+            {manualLocationMessage}
+          </p>
+        ) : null}
       </div>
 
       <fieldset className="filterGroup">

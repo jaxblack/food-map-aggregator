@@ -37,7 +37,7 @@ describe("createAmapProvider", () => {
     expect(requestedUrl.origin + requestedUrl.pathname).toBe(
       "https://restapi.amap.com/v5/place/around",
     );
-    expect(requestedUrl.searchParams.get("radius")).toBe("3000");
+    expect(requestedUrl.searchParams.get("radius")).toBe("9000");
     expect(requestedUrl.searchParams.get("types")).toBe("050000");
     expect(requestedUrl.searchParams.get("page_size")).toBe("25");
     expect(result.status).toEqual(
@@ -45,6 +45,7 @@ describe("createAmapProvider", () => {
     );
     expect(result.places[0]).toEqual(
       expect.objectContaining({
+        externalUrl: expect.stringContaining("https://uri.amap.com/marker"),
         name: "Test Cafe",
         rating: 4.6,
         priceLevel: 2,
