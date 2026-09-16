@@ -30,8 +30,8 @@ npm run build
 - `src/features/places/server/` — source selection and provider boundary
 - `src/test/` — shared test setup
 
-`GET /api/places` returns the default demo response. Use `?source=demo` explicitly or `?source=live` to inspect the typed, intentionally unavailable external-provider state. Unknown source values return `400`.
+`GET /api/places` returns the default, clearly labeled demo aggregation from deterministic Amap, Meituan, Eleme, and Douyin fixtures. Use `?source=live` for the official Amap Web Service. Optional query parameters are `lat`, `lng`, `radius` (capped at 3000m), `limit` (capped at 25), `category`, `minRating`, and `maxPrice`.
 
 ## Environment
 
-Copy `.env.example` for local development. `FOOD_DATA_API_KEY` is a server-only placeholder for a future integration and is not read by this slice. Never commit `.env` files or expose provider credentials through `NEXT_PUBLIC_*` variables.
+Copy `.env.example` for local development. Set the server-only `AMAP_WEB_SERVICE_KEY` to enable live mode. Without it, live mode reports Amap as unavailable and returns no fixtures; choose `source=demo` explicitly for deterministic data. Never commit `.env` files or expose provider credentials through `NEXT_PUBLIC_*` variables.
