@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { FilterPanel, type GeolocationState } from "./filter-panel";
+import { MapView } from "./map-view";
 import { DEFAULT_CENTER } from "@/features/places/server/get-places";
 import { distanceMeters } from "@/features/places/server/geo";
 import {
@@ -25,12 +26,6 @@ interface PlaceExplorerProps {
   providerStatus: ProviderStatus;
   sourceMode: SourceMode;
 }
-
-const PIN_POSITIONS = [
-  { left: "18%", top: "27%" },
-  { left: "47%", top: "59%" },
-  { left: "76%", top: "31%" },
-] as const;
 
 export function PlaceExplorer({
   places,
@@ -132,60 +127,48 @@ export function PlaceExplorer({
       />
 
       <div className="explorerGrid">
-        <div className="map" aria-label="Demo map">
-          <div className="mapRoad mapRoad--horizontal" />
-          <div className="mapRoad mapRoad--vertical" />
-          {visiblePlaces.map((place, index) => {
-            const selected = place.id === selectedId;
-            return (
-              <button
-                aria-label={`Show ${place.name}`}
-                aria-pressed={selected}
-                className="pin"
-                key={place.id}
-                onClick={() => setSelectedId(place.id)}
-                style={PIN_POSITIONS[index % PIN_POSITIONS.length]}
-                type="button"
-              >
-                {index + 1}
-              </button>
-            );
-          })}
-          {selectedPlace ? (
-            <div className="mapCallout" aria-live="polite">
-              <strong>{selectedPlace.name}</strong>
-              <span>{selectedPlace.neighborhood}</span>
-            </div>
-          ) : null}
-        </div>
+        <MapView
+          onSelect={setSelectedId}
+          places={visiblePlaces}
+          selectedId={selectedId}
+        />
 
-        <ol className="placeList" aria-label="Demo restaurants">
-          {visiblePlaces.map((place, index) => {
-            const selected = place.id === selectedId;
-            return (
-              <li key={place.id}>
-                <button
-                  aria-pressed={selected}
-                  className={`placeCard${selected ? " placeCard--selected" : ""}`}
-                  onClick={() => setSelectedId(place.id)}
-                  type="button"
-                >
-                  <span className="placeNumber">{index + 1}</span>
-                  <span>
-                    <strong>{place.name}</strong>
-                    <small>
-                      {place.cuisine} · {place.neighborhood}
-                    </small>
-                  </span>
-                  <span className="placeMeta">
-                    ★ {place.rating} · {"$".repeat(place.priceLevel)} ·{" "}
-                    {((place.distanceMeters ?? 0) / 1_000).toFixed(1)} km
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
+        <aside className="resultsPanel" aria-label="Restaurant results">
+          <div className="sheetHandle" aria-hidden="true" />
+          <h2>Nearby restaurants</h2>
+          <ol className="placeList" aria-label="Demo restaurants">
+            {visiblePlaces.map((place, index) => {
+              const selected = place.id === selectedId;
+              return (
+                <li key={place.id}>
+                  <button
+                    aria-pressed={selected}
+                    className={`placeCard${selected ? " placeCard--selected" : ""}`}
+                    onClick={() => setSelectedId(place.id)}
+                    type="button"
+                  >
+                    <span className="placeNumber">{index + 1}</span>
+                    <span>
+                      <strong>{place.name}</strong>
+                      <small>
+                        {place.cuisine} · {place.neighborhood}
+                      </small>
+                    </span>
+                    <span className="placeMeta">
+                      ★ {place.rating} · {"$".repeat(place.priceLevel)} ·{" "}
+                      {((place.distanceMeters ?? 0) / 1_000).toFixed(1)} km
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
+        <p className="srStatus" role="status">
+          {selectedPlace
+            ? `${selectedPlace.name} selected.`
+            : "No restaurant selected."}
+        </p>
       </div>
     </section>
   );

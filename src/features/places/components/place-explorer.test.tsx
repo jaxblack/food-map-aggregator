@@ -38,6 +38,26 @@ describe("PlaceExplorer", () => {
     expect(
       screen.getByText("Lantern Hill", { selector: ".mapCallout span" }),
     ).toBeVisible();
+    expect(screen.getByText(/Ember Kitchen selected/)).toBeInTheDocument();
+  });
+
+  it("provides an attributed fallback when an interactive map is unavailable", () => {
+    render(
+      <PlaceExplorer
+        places={[...DEMO_PLACES]}
+        providerStatus={{
+          provider: "built-in-demo",
+          state: "ready",
+          message: "Demo",
+        }}
+        sourceMode="demo"
+      />,
+    );
+
+    expect(screen.getByText(/interactive map unavailable/i)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: /OpenStreetMap contributors/ }),
+    ).toHaveAttribute("href", "https://www.openstreetmap.org/copyright");
   });
 
   it("supports persistent multi-select filters, sorting, and keyboard provider ordering", async () => {

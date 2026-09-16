@@ -20,3 +20,8 @@ Object.defineProperty(window, "localStorage", {
   configurable: true,
   value: localStorageMock,
 });
+
+Object.defineProperty(window.URL, "createObjectURL", {
+  configurable: true,
+  value: () => "blob:test-worker",
+});
