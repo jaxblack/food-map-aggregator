@@ -94,6 +94,102 @@ h1 {
   grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
 }
 
+.filters {
+  background: var(--card);
+  border: 1px solid #d8ddd7;
+  border-radius: 18px;
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.filterGroup {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.filterGroup h2,
+.filterGroup legend {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 0.55rem;
+  padding: 0;
+}
+
+.buttonRow,
+.choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.buttonRow button,
+.providerOrder button {
+  background: white;
+  border: 1px solid #bbc3bd;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0.4rem 0.65rem;
+}
+
+.filterHint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0.5rem 0 0;
+}
+
+.sortControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sortControls label {
+  display: grid;
+  font-size: 0.85rem;
+  gap: 0.35rem;
+}
+
+.sortControls select {
+  max-width: 19rem;
+  padding: 0.45rem;
+}
+
+.providerOrder {
+  display: grid;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+}
+
+.providerOrder li {
+  align-items: center;
+  background: var(--paper);
+  border-radius: 8px;
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem;
+}
+
+.providerOrder button {
+  margin-left: 0.35rem;
+}
+
+.srStatus {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .map {
   background:
     radial-gradient(circle at 72% 64%, #d2e5cc 0 10%, transparent 10.5%),

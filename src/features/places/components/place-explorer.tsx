@@ -1,8 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { FilterPanel, type GeolocationState } from "./filter-panel";
+import { DEFAULT_CENTER } from "@/features/places/server/get-places";
+import { distanceMeters } from "@/features/places/server/geo";
+import {
+  DEFAULT_PREFERENCES,
+  loadPreferences,
+  moveProvider,
+  savePreferences,
+  sortPlaces,
+  type PlacePreferences,
+} from "@/features/places/model/preferences";
 import type {
+  Coordinates,
   Place,
   ProviderStatus,
   SourceMode,
@@ -26,7 +38,62 @@ export function PlaceExplorer({
   sourceMode,
 }: PlaceExplorerProps) {
   const [selectedId, setSelectedId] = useState(places[0]?.id ?? null);
-  const selectedPlace = places.find((place) => place.id === selectedId);
+  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [center, setCenter] = useState<Coordinates>(DEFAULT_CENTER);
+  const [geolocationState, setGeolocationState] =
+    useState<GeolocationState>("demo");
+
+  useEffect(() => {
+    setPreferences(loadPreferences(window.localStorage));
+  }, []);
+
+  const updatePreferences = (next: PlacePreferences) => {
+    setPreferences(next);
+    savePreferences(window.localStorage, next);
+  };
+
+  const cuisines = useMemo(
+    () => [...new Set(places.map((place) => place.cuisine))].sort(),
+    [places],
+  );
+  const visiblePlaces = useMemo(() => {
+    const located = places.map((place) => ({
+      ...place,
+      distanceMeters: Math.round(distanceMeters(center, place.coordinates)),
+    }));
+    const filtered = located.filter(
+      (place) =>
+        (place.distanceMeters ?? Infinity) <= preferences.radiusKm * 1_000 &&
+        (preferences.cuisines.length === 0 ||
+          preferences.cuisines.includes(place.cuisine)),
+    );
+    return sortPlaces(filtered, preferences.sortField, preferences.sortDirection);
+  }, [center, places, preferences]);
+  const selectedPlace = visiblePlaces.find((place) => place.id === selectedId);
+
+  const requestLocation = () => {
+    setGeolocationState("loading");
+    if (!navigator.geolocation) {
+      setCenter(DEFAULT_CENTER);
+      setGeolocationState("error");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setCenter({ latitude: coords.latitude, longitude: coords.longitude });
+        setGeolocationState("success");
+      },
+      ({ code }) => {
+        setCenter(DEFAULT_CENTER);
+        setGeolocationState(code === 1 ? "denied" : "error");
+      },
+    );
+  };
+
+  const useDemoLocation = () => {
+    setCenter(DEFAULT_CENTER);
+    setGeolocationState("demo");
+  };
 
   return (
     <section className="explorer" aria-label="Food map explorer">
@@ -44,11 +111,31 @@ export function PlaceExplorer({
         </p>
       </header>
 
+      <FilterPanel
+        cuisines={cuisines}
+        geolocationState={geolocationState}
+        onChange={updatePreferences}
+        onMoveProvider={(provider, offset) =>
+          updatePreferences({
+            ...preferences,
+            providerOrder: moveProvider(
+              preferences.providerOrder,
+              provider,
+              offset,
+            ),
+          })
+        }
+        onRequestLocation={requestLocation}
+        onUseDemoLocation={useDemoLocation}
+        preferences={preferences}
+        resultCount={visiblePlaces.length}
+      />
+
       <div className="explorerGrid">
         <div className="map" aria-label="Demo map">
           <div className="mapRoad mapRoad--horizontal" />
           <div className="mapRoad mapRoad--vertical" />
-          {places.map((place, index) => {
+          {visiblePlaces.map((place, index) => {
             const selected = place.id === selectedId;
             return (
               <button
@@ -73,7 +160,7 @@ export function PlaceExplorer({
         </div>
 
         <ol className="placeList" aria-label="Demo restaurants">
-          {places.map((place, index) => {
+          {visiblePlaces.map((place, index) => {
             const selected = place.id === selectedId;
             return (
               <li key={place.id}>
@@ -91,7 +178,8 @@ export function PlaceExplorer({
                     </small>
                   </span>
                   <span className="placeMeta">
-                    ★ {place.rating} · {"$".repeat(place.priceLevel)}
+                    ★ {place.rating} · {"$".repeat(place.priceLevel)} ·{" "}
+                    {((place.distanceMeters ?? 0) / 1_000).toFixed(1)} km
                   </span>
                 </button>
               </li>
