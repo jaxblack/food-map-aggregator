@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { appPath } from "@/app-path";
 import {
   FilterPanel,
   type GeolocationState,
@@ -85,7 +86,7 @@ export function PlaceExplorer({
     setSearchState("loading");
     setSearchMessage("Refreshing nearby restaurants…");
 
-    void fetch(`/api/places?${params}`, {
+    void fetch(`${appPath("/api/places")}?${params}`, {
       headers: { Accept: "application/json" },
       signal: controller.signal,
     })
@@ -192,7 +193,7 @@ export function PlaceExplorer({
 
     try {
       const response = await fetch(
-        `/api/geocode?q=${encodeURIComponent(query)}`,
+        `${appPath("/api/geocode")}?q=${encodeURIComponent(query)}`,
         { headers: { Accept: "application/json" } },
       );
       const payload: unknown = await response.json();

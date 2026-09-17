@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 test("keeps cards and interactive map markers selected in both directions", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto(".");
   await expect(page.getByText("Interactive map ready.")).toBeAttached();
 
   const emberCard = page.locator(".placeCard", { hasText: "Ember Kitchen" });
@@ -38,7 +38,7 @@ test("keeps cards and interactive map markers selected in both directions", asyn
 
 test("uses a stable desktop split layout", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/");
+  await page.goto(".");
   await expect(page.getByText("Interactive map ready.")).toBeAttached();
 
   const map = await page.locator(".mapFrame").boundingBox();
@@ -55,7 +55,7 @@ test("uses a stable desktop split layout", async ({ page }) => {
 
 test("overlays a bounded bottom sheet on the mobile map", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto(".");
   await expect(page.getByText("Interactive map ready.")).toBeAttached();
 
   const grid = await page.locator(".explorerGrid").boundingBox();
@@ -79,7 +79,7 @@ test("keeps the restaurant list usable when the map cannot load", async ({
   page,
 }) => {
   await mockMapFailure(page);
-  await page.goto("/");
+  await page.goto(".");
 
   await expect(
     page.getByText(/Interactive map unavailable. Showing the accessible fallback map/),
@@ -108,7 +108,7 @@ test("keeps the manual demo location after geolocation is denied", async ({
     });
   });
 
-  await page.goto("/");
+  await page.goto(".");
   await page.getByRole("button", { name: "Use my location" }).click();
   await expect(page.getByText(/Location permission denied/)).toBeVisible();
 
@@ -122,7 +122,7 @@ test("keeps the manual demo location after geolocation is denied", async ({
 test("searches a manual demo area and sends the selected 10km radius", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto(".");
   await page
     .getByLabel("Search an address or demo area")
     .fill("上海人民广场");
@@ -140,7 +140,7 @@ test("searches a manual demo area and sends the selected 10km radius", async ({
 });
 
 test("filters cuisines and sorts results deterministically", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(".");
 
   await page.getByRole("checkbox", { name: "Noodles" }).check();
   await expect(page.getByText("1 restaurants shown.", { exact: false })).toBeAttached();
@@ -157,7 +157,7 @@ test("filters cuisines and sorts results deterministically", async ({ page }) =>
 });
 
 test("persists provider priority across reloads", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(".");
   const providers = page.locator(".providerOrder li");
 
   await expect(providers).toHaveText([
@@ -187,13 +187,13 @@ test("persists provider priority across reloads", async ({ page }) => {
 });
 
 test("labels demo and live source responses", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(".");
   await expect(page.getByText("Source: demo")).toBeVisible();
   await expect(
     page.getByRole("status").filter({ hasText: "aggregation:" }),
   ).toContainText("4/4 providers ready");
 
-  const demoResponse = await page.request.get("/api/places?source=demo");
+  const demoResponse = await page.request.get("api/places?source=demo");
   expect(demoResponse.ok()).toBe(true);
   const demo = await demoResponse.json();
   expect(demo.sourceMode).toBe("demo");
@@ -201,7 +201,7 @@ test("labels demo and live source responses", async ({ page }) => {
     expect.arrayContaining([expect.objectContaining({ mode: "demo" })]),
   );
 
-  const liveResponse = await page.request.get("/api/places?source=live");
+  const liveResponse = await page.request.get("api/places?source=live");
   expect(liveResponse.ok()).toBe(true);
   const live = await liveResponse.json();
   expect(live.sourceMode).toBe("live");
@@ -211,7 +211,7 @@ test("labels demo and live source responses", async ({ page }) => {
 });
 
 test("shows honest provider links for demo merchants", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(".");
   const links = page.getByLabel("Harbor Noodles provider links");
 
   await expect(links.getByRole("link", { name: "Amap demo search" })).toHaveAttribute(

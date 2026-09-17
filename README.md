@@ -32,6 +32,17 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Demo mode needs no account, credential, or external service.
 
+To build and serve below an existing host path, set the same base path at
+build and runtime:
+
+```bash
+FOOD_BASE_PATH=/food npm run build
+FOOD_BASE_PATH=/food npm start -- --hostname 127.0.0.1 --port 8793
+```
+
+The public qlili deployment is available at
+[https://qlili.com/food/](https://qlili.com/food/).
+
 ## Architecture
 
 - `src/app/` contains App Router pages and `GET /api/places`.
@@ -83,6 +94,14 @@ Copy `.env.example` to `.env.local`. Do not commit local environment files.
 5. Deploy, then verify the source label and `/api/places?source=demo`. Verify live mode separately only when the provider agreement and key permit it.
 
 No deployment command or Vercel token is required for local development.
+
+### qlili.com subpath
+
+The production service listens only on `127.0.0.1:8793`. Caddy preserves the
+`/food` prefix when proxying because the Next.js build uses
+`FOOD_BASE_PATH=/food`; do not use `handle_path`, which would strip the prefix.
+`AMAP_WEB_SERVICE_KEY` is optional and belongs in the server-side systemd
+environment file, never in the repository.
 
 ## Legal and operational limits
 
