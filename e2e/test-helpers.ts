@@ -6,8 +6,15 @@ const transparentPng = Buffer.from(
 );
 
 export async function mockExternalNetwork(page: Page) {
-  await page.route(/^https?:\/\/(?!127\.0\.0\.1(?::\d+)?(?:\/|$))/, (route) => {
+  const appOrigin = new URL(
+    process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000/",
+  ).origin;
+
+  await page.route(/^https?:\/\//, (route) => {
     const url = new URL(route.request().url());
+    if (url.origin === appOrigin) {
+      return route.continue();
+    }
     if (url.hostname === "tile.openstreetmap.org") {
       return route.fulfill({
         body: transparentPng,

@@ -41,7 +41,7 @@ FOOD_BASE_PATH=/food npm start -- --hostname 127.0.0.1 --port 8793
 ```
 
 The public qlili deployment is available at
-[https://qlili.com/food/](https://qlili.com/food/).
+[https://qlili.com/food](https://qlili.com/food).
 
 ## Architecture
 
